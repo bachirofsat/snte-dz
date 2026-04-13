@@ -83,7 +83,7 @@
         /* Responsive Layout */
         .app-container {
             display: grid;
-            grid-template-columns: 320px 1fr;
+            grid-template-columns: 280px 1fr;
             height: calc(100vh - 75px);
             overflow: hidden;
             transition: all 0.4s;
@@ -103,7 +103,33 @@
                 box-shadow: -10px 0 30px rgba(0,0,0,0.2);
             }
             .sidebar.active { right: 0; }
+            
+            #mobile-sidebar-arrow {
+                display: flex !important;
+                align-items: center;
+                justify-content: center;
+                position: fixed;
+                right: 0;
+                top: 50%;
+                transform: translateY(-50%);
+                background: var(--primary);
+                color: white;
+                width: 30px;
+                height: 60px;
+                border-radius: 15px 0 0 15px;
+                z-index: 1001;
+                border: none;
+                box-shadow: -5px 0 15px rgba(0,0,0,0.1);
+                cursor: pointer;
+                transition: 0.3s;
+            }
+            .sidebar.active + #mobile-sidebar-arrow {
+                right: 85%;
+                border-radius: 0 15px 15px 0;
+            }
         }
+        
+        #mobile-sidebar-arrow { display: none; }
 
         /* 3D Glassmorphism Cards */
         .dash-card {
@@ -970,8 +996,8 @@
         }
     </style>
 
-    <button class="toggle-btn no-print" onclick="toggleSidebar()" title="إخفاء/إظهار لوحة التحكم">
-        <i class="ph ph-x" style="font-size: 1.8rem;"></i>
+    <button id="mobile-sidebar-arrow" class="no-print" onclick="toggleSidebarMobile()">
+        <i class="ph ph-caret-left" id="sidebar-arrow-icon" style="font-size: 1.5rem;"></i>
     </button>
 
     <nav class="top-navbar no-print">
@@ -1536,6 +1562,18 @@
         let members = []; // The members assigned to the CURRENT document
         let currentStructureMode = 'فرع نقابي';
         let currentType = "فرع نقابي";
+
+        function toggleSidebarMobile() {
+            const sidebar = document.querySelector('.sidebar');
+            const icon = document.getElementById('sidebar-arrow-icon');
+            sidebar.classList.toggle('active');
+            
+            if (sidebar.classList.contains('active')) {
+                icon.className = 'ph ph-caret-right';
+            } else {
+                icon.className = 'ph ph-caret-left';
+            }
+        }
 
         const categoriesData = {
             'faaliyat': [
