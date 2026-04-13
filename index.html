@@ -790,7 +790,7 @@
     <script>
         let currentUser = null;
         let appUsers = JSON.parse(localStorage.getItem('snte_users')) || [
-            { u: 'admin', p: 'snte2026', role: 'central', wilaya: 'الكل' }
+            { u: 'sntedz', p: 'sntedz2026', role: 'central', wilaya: 'الكل' }
         ];
 
         function performAppLogin(autoU, autoP) {
@@ -1334,11 +1334,11 @@
                             <p style="opacity:0.8; line-height:1.6; max-width:500px;">أهلاً بك في فضاء التحكم الخاص بك. يمكنك هنا متابعة نشاطك وضمان خصوصية بيانات الولاية المسؤولة عنها.</p>
                             
                             <div style="display:flex; gap:15px; margin-top:30px;">
-                                <button class="btn btn-primary" style="background:#334155; border:1px solid #475569;" onclick="alert('خاصية تحديث البيانات ستتوفر قريباً في التحديث القادم')">
+                                <button class="btn btn-primary" style="background:#334155; border:1px solid #475569;" onclick="openChangePasswordModal()">
                                     <i class="ph ph-password"></i> تغيير كلمة المرور
                                 </button>
-                                <button class="btn btn-primary" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);" onclick="alert('جاري تجهيز سجل النشاطات...')">
-                                    <i class="ph ph-clock-counter-clockwise"></i> سجل النشاطات
+                                <button class="btn btn-primary" style="background:rgba(255,255,255,0.1); border:1px solid rgba(255,255,255,0.2);" onclick="window.open('https://drive.google.com/drive/folders/1va2R1dBDUpZZ96ZyaSCutqnhgo8C_Mys?usp=sharing', '_blank')">
+                                    <i class="ph ph-google-logo"></i> مجلد الحفظ السحابي
                                 </button>
                             </div>
                         </div>
@@ -1627,6 +1627,77 @@
             });
             
             triggerTypeChange();
+        }
+
+        function openChangePasswordModal() {
+            const container = document.getElementById('bank-modal-container');
+            container.innerHTML = `
+                <div style="position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.6); z-index:2000; display:flex; align-items:center; justify-content:center; backdrop-filter:blur(5px);">
+                    <div style="background:white; width:95%; max-width:450px; border-radius:24px; display:flex; flex-direction:column; box-shadow:0 30px 60px rgba(0,0,0,0.4); overflow:hidden;">
+                        <div style="padding:20px; background:var(--primary); color:white; display:flex; justify-content:space-between; align-items:center;">
+                            <h3 style="margin:0;"><i class="ph ph-lock-key"></i> تغيير كلمة المرور</h3>
+                            <button onclick="document.getElementById('bank-modal-container').innerHTML=''" class="btn" style="background:white; color:var(--danger); border-radius:50%; width:35px; height:35px; padding:0;"><i class="ph ph-x"></i></button>
+                        </div>
+                        <div style="padding:25px; display:flex; flex-direction:column; gap:20px;">
+                            <div class="form-group">
+                                <label>كلمة المرور الحالية</label>
+                                <input type="password" id="old-pass" placeholder="••••••••" style="width:100%;">
+                            </div>
+                            <div class="form-group">
+                                <label>كلمة المرور الجديدة</label>
+                                <input type="password" id="new-pass" placeholder="••••••••" style="width:100%;">
+                            </div>
+                            <div class="form-group">
+                                <label>تأكيد كلمة المرور الجديدة</label>
+                                <input type="password" id="confirm-pass" placeholder="••••••••" style="width:100%;">
+                            </div>
+                            <button class="btn btn-primary" style="width:100%; height:50px; margin-top:10px;" onclick="saveNewPassword()">
+                                <i class="ph ph-check-circle"></i> حفظ التعديلات
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        function saveNewPassword() {
+            const oldP = document.getElementById('old-pass').value;
+            const newP = document.getElementById('new-pass').value;
+            const confP = document.getElementById('confirm-pass').value;
+
+            if (!oldP || !newP || !confP) {
+                alert('⚠️ يرجى ملء جميع الحقول المطلوبة.');
+                return;
+            }
+
+            if (oldP !== currentUser.p) {
+                alert('❌ كلمة المرور الحالية غير صحيحة!');
+                return;
+            }
+
+            if (newP !== confP) {
+                alert('❌ كلمتا المرور الجديدتان غير متطابقتين!');
+                return;
+            }
+
+            if (newP.length < 4) {
+                alert('⚠️ يجب أن تكون كلمة المرور الجديدة 4 رموز على الأقل.');
+                return;
+            }
+
+            // تحديث في المصفوفة العامة وفي المستخدم الحالي
+            const userIdx = appUsers.findIndex(u => u.u === currentUser.u);
+            if (userIdx !== -1) {
+                appUsers[userIdx].p = newP;
+                currentUser.p = newP;
+                
+                // حفظ التغييرات
+                localStorage.setItem('snte_users', JSON.stringify(appUsers));
+                localStorage.setItem('snte_current_user', JSON.stringify(currentUser));
+                
+                alert('✅ تم تغيير كلمة المرور بنجاح.');
+                document.getElementById('bank-modal-container').innerHTML = '';
+            }
         }
 
         document.addEventListener("DOMContentLoaded", () => {
@@ -2511,7 +2582,8 @@
             XLSX.utils.book_append_sheet(wb, ws2, 'الأعضاء');
 
             const wilaya = data.wilaya || 'snte';
-            XLSX.writeFile(wb, `snte_حفظ_${wilaya}_${new Date().toISOString().slice(0,10)}.xlsx`);
+            const fileName = `snte_احتياطي_${wilaya}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
             localStorage.setItem('snte_haikala_data', JSON.stringify(data));
             alert('✅ تم حفظ البيانات كملف Excel (.xlsx) بنجاح!');
         }
@@ -2616,7 +2688,10 @@
             ws['!cols'] = rows[0].map(() => ({ wch: 22 }));
             const wb = XLSX.utils.book_new();
             XLSX.utils.book_append_sheet(wb, ws, 'البيانات');
-            XLSX.writeFile(wb, `snte_${currentType.replace(/\s/g,'_')}_${new Date().toISOString().slice(0,10)}.xlsx`);
+            
+            const wilaya = document.getElementById('wilaya').value || 'عام';
+            const fileName = `snte_${currentType.replace(/\s/g,'_')}_${wilaya}_${new Date().toISOString().slice(0,10)}.xlsx`;
+            XLSX.writeFile(wb, fileName);
             alert('📊 تم تصدير ملف Excel (.xlsx) بنجاح!');
         }
 
