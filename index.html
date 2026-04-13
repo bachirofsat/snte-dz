@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
     <title>إدارة محاضر الهيكلة النقابية - SNTE</title>
     <link
         href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@500;700;800&display=swap"
@@ -83,7 +83,7 @@
         /* Responsive Layout */
         .app-container {
             display: grid;
-            grid-template-columns: 380px 1fr;
+            grid-template-columns: 320px 1fr;
             height: calc(100vh - 75px);
             overflow: hidden;
             transition: all 0.4s;
@@ -768,7 +768,7 @@
                 <label style="font-weight:800; font-size:0.9rem; display:block; margin-bottom:8px; color:#1e293b;">اسم المستخدم</label>
                 <div style="position:relative;">
                     <i class="ph ph-user" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:1.2rem;"></i>
-                    <input type="text" id="login-user" value="admin" style="width:100%; padding:14px 45px 14px 15px; border-radius:12px; border:2px solid #e2e8f0; font-family:inherit; font-weight:700; outline:none; transition:0.3s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
+                    <input type="text" id="login-user" value="sntedz" style="width:100%; padding:14px 45px 14px 15px; border-radius:12px; border:2px solid #e2e8f0; font-family:inherit; font-weight:700; outline:none; transition:0.3s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'">
                 </div>
             </div>
             
@@ -776,7 +776,7 @@
                 <label style="font-weight:800; font-size:0.9rem; display:block; margin-bottom:8px; color:#1e293b;">كلمة المرور</label>
                 <div style="position:relative;">
                     <i class="ph ph-lock-key" style="position:absolute; right:15px; top:50%; transform:translateY(-50%); color:#94a3b8; font-size:1.2rem;"></i>
-                    <input type="password" id="login-pass" value="snte2026" style="width:100%; padding:14px 45px 14px 15px; border-radius:12px; border:2px solid #e2e8f0; font-family:inherit; font-weight:700; outline:none; transition:0.3s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'" onkeyup="if(event.key === 'Enter') performAppLogin()">
+                    <input type="password" id="login-pass" value="sntedz2026" style="width:100%; padding:14px 45px 14px 15px; border-radius:12px; border:2px solid #e2e8f0; font-family:inherit; font-weight:700; outline:none; transition:0.3s;" onfocus="this.style.borderColor='var(--primary)'" onblur="this.style.borderColor='#e2e8f0'" onkeyup="if(event.key === 'Enter') performAppLogin()">
                 </div>
             </div>
             
@@ -784,6 +784,10 @@
                 تسجيل الدخول <i class="ph ph-sign-in" style="font-size:1.3rem;"></i>
             </button>
             <p id="login-err" style="color:var(--danger); font-size:0.85rem; font-weight:800; margin-top:15px; display:none;">❌ بيانات الدخول غير صحيحة!</p>
+            
+            <div style="margin-top:25px; border-top:1px solid #f1f5f9; pt:15px;">
+                <a href="#" onclick="restoreDefaultAdmin()" style="color:#94a3b8; font-size:0.8rem; text-decoration:none; font-weight:700; transition:0.3s;" onmouseover="this.style.color='var(--primary)'" onmouseout="this.style.color='#94a3b8'">نسيت كلمة المرور؟ (استعادة الافتراضي)</a>
+            </div>
         </div>
     </div>
     
@@ -836,6 +840,31 @@
                     err.style.display = 'block';
                     err.style.animation = 'shake 0.4s';
                     setTimeout(() => { err.style.animation = ''; }, 400);
+                }
+            }
+        }
+
+        // استعادة كلمة المرور الافتراضية
+        function restoreDefaultAdmin() {
+            if(confirm('🚨 هل تود حقاً استعادة بيانات الدخول الافتراضية لمركز الإدارة؟')) {
+                const recoveryKey = prompt('يرجى إدخال مفتاح الاستعادة الخاص بالنظام (snte-admin-reset):');
+                if(recoveryKey === 'snte-admin-reset') {
+                    // مسح المستخدمين والعودة للافتراضي
+                    const centralUser = { u: 'sntedz', p: 'sntedz2026', role: 'central', wilaya: 'الكل' };
+                    let users = JSON.parse(localStorage.getItem('snte_users')) || [];
+                    const idx = users.findIndex(u => u.role === 'central');
+                    
+                    if(idx !== -1) {
+                        users[idx] = centralUser;
+                    } else {
+                        users.push(centralUser);
+                    }
+                    
+                    localStorage.setItem('snte_users', JSON.stringify(users));
+                    alert('✅ تمت عملية الاستعادة بنجاح.\nالمستخدم: sntedz\nكلمة المرور: sntedz2026');
+                    location.reload();
+                } else {
+                    alert('❌ مفتاح الاستعادة غير صحيح!');
                 }
             }
         }
@@ -915,12 +944,19 @@
 
         function sendActivationWhatsApp(index) {
             const user = appUsers[index];
-            const baseUrl = window.location.origin + window.location.pathname;
-            const loginUrl = `${baseUrl}?u=${user.u}&p=${user.p}`;
-            const message = `*تفعيل حساب الأمانة الولائية S.N.T.E*\n\nيرجى الضغط على الرابط أدناه للدخول المباشر إلى حساب ولاية: *${user.wilaya}*\n\n🔗 رابط الدخول الآمن:\n${loginUrl}\n\n*ملاحظة:* يرجى عدم مشاركة هذا الرابط مع أشخاص غير مخولين.`;
+            const defaultMsg = `أهلاً بك، هذه بيانات حسابك في نظام SNTE:\nالمستخدم: ${user.u}\nكلمة المرور: ${user.p}`;
+            const customMsg = prompt("قم بكتابة الرسالة التي تود إرسالها للأمانة الولائية:", defaultMsg);
             
-            // فتح واتساب مع الرقم المحدد في الطلب
-            const waUrl = `https://wa.me/213696380965?text=${encodeURIComponent(message)}`;
+            if (customMsg === null) return; // إلغاء الإرسال
+
+            const phoneNumber = prompt("يرجى إدخال رقم هاتف الأمانة الولائية (بدون مفتاح الدولة إذا كان جزائرياً):", "0696380965");
+            if (!phoneNumber) return;
+
+            // تحويل الرقم إلى التنسيق الدولي (الافتراض جزائري 213)
+            let formattedPhone = phoneNumber.startsWith('0') ? '213' + phoneNumber.substring(1) : phoneNumber;
+            if (!formattedPhone.startsWith('213') && formattedPhone.length === 9) formattedPhone = '213' + formattedPhone;
+
+            const waUrl = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(customMsg)}`;
             window.open(waUrl, '_blank');
         }
     </script>
